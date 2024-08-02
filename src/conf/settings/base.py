@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.google",
     "debug_toolbar",
     "django_extensions",
+    "app.content",
 ]
 
 MIDDLEWARE = [
@@ -115,7 +116,7 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
+        "rest_framework.permissions.AllowAny",
     ],
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
