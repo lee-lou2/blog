@@ -23,7 +23,6 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "django_filters",
-    "django_hosts",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -43,7 +42,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    "django_hosts.middleware.HostsRequestMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
@@ -98,7 +96,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # AUTH
 SITE_ID = 1
-AUTH_USER_MODEL = "user.User"
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
