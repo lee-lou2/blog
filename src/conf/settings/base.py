@@ -23,10 +23,6 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "django_filters",
-    "allauth",
-    "allauth.account",
-    "allauth.socialaccount",
-    "allauth.socialaccount.providers.google",
     "debug_toolbar",
     "django_extensions",
     "app.content",
@@ -100,8 +96,9 @@ SITE_ID = 1
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
-    "allauth.account.auth_backends.AuthenticationBackend",
 ]
+# 이메일 인증 테스트
+# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # STATIC
 STATIC_URL = "/static/"
