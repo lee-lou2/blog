@@ -26,6 +26,8 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "django_extensions",
     "app.content",
+    "allauth",
+    "allauth.account",
 ]
 
 MIDDLEWARE = [
@@ -37,6 +39,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
@@ -95,6 +98,7 @@ SITE_ID = 1
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 # 이메일 인증 테스트
 # EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
@@ -149,7 +153,7 @@ LOGGING = {
         },
         "django.db.backends": {
             "handlers": ["console"],
-            "level": "DEBUG",
+            "level": "INFO",
         },
         "gunicorn": {
             "handlers": ["console"],
