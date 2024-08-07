@@ -1,37 +1,24 @@
 from rest_framework import serializers
 
 from app.content.models import Content, ContentComment, ContentTag
-from app.content.v1.nested_serializers import ContentChildCommentSerializer
-
-
-class ContentTagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ContentTag
-        fields = "__all__"
+from app.content.v1.nested_serializers import (
+    ContentCommentNestedSerializer,
+)
 
 
 class ContentSerializer(serializers.ModelSerializer):
-    title = serializers.SerializerMethodField()
-    tags = ContentTagSerializer(many=True, read_only=True, source="content_tags")
-
-    def get_title(self, obj):
-        # self.context
-        return "test : " + obj.title
-
-    def validate(self, attrs):
-        return attrs
-
-    def validate_title(self, data):
-        return data
-
-    def to_internal_value(self, data):
-        return super().to_internal_value(data)
+    tags = serializers.ListSerializer(child=serializers.CharField())
 
     def to_representation(self, instance):
+        instance.tags = instance.content_tags.all().values_list("tag", flat=True)
         return super().to_representation(instance)
 
-    def save(self, **kwargs):
-        return super().save(**kwargs)
+    def create(self, validated_data):
+        tags = validated_data.pop("tags")
+        instance = super().create(validated_data)
+        tag_objs = [ContentTag(tag=tag, content=instance) for tag in tags]
+        ContentTag.objects.bulk_create(tag_objs)
+        return instance
 
     class Meta:
         model = Content
@@ -39,14 +26,9 @@ class ContentSerializer(serializers.ModelSerializer):
 
 
 class ContentCommentSerializer(serializers.ModelSerializer):
-    child = ContentChildCommentSerializer(allow_null=True)
-
-    def to_representation(self, instance):
-        resp = super().to_representation(instance)
-        child_obj = ContentComment.objects.filter(parent=instance)
-        serializer = ContentChildCommentSerializer(child_obj, many=True)
-        resp["child"] = serializer.data
-        return resp
+    reply = ContentCommentNestedSerializer(
+        allow_null=True, many=True, source="reply_comments"
+    )
 
     class Meta:
         model = ContentComment

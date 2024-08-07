@@ -2,29 +2,12 @@ from django.contrib.auth.models import User
 from django.db import models
 
 
-class Author(models.Model):
-    name = models.CharField(max_length=100, verbose_name="이름")
+class Content(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name="author",
-        verbose_name="사용자 ID",
-    )
-
-    class Meta:
-        db_table = "author"
-        verbose_name = "작가"
-
-
-class Content(models.Model):
-    # content_tags`
-    author = models.ForeignKey(
-        Author,
-        on_delete=models.CASCADE,
-        related_name="content",
+        related_name="contents",
         verbose_name="작성자 ID",
-        null=True,
-        blank=True,
     )
     title = models.CharField(max_length=100, verbose_name="제목")
     body = models.TextField(verbose_name="내용")
@@ -48,7 +31,7 @@ class ContentComment(models.Model):
     parent = models.ForeignKey(
         "self",
         on_delete=models.CASCADE,
-        related_name="content_comments",
+        related_name="reply_comments",
         verbose_name="부모 댓글",
         null=True,
         blank=True,
