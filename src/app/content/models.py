@@ -15,6 +15,10 @@ class Content(models.Model):
         max_length=255, verbose_name="부제목", blank=True, default=""
     )
     image_url = models.URLField(verbose_name="이미지 URL", blank=True, default="")
+    updated_at = models.DateTimeField(verbose_name="수정일시", auto_now=True)
+    created_at = models.DateTimeField(verbose_name="생성일시", auto_now_add=True)
+    like_count = models.IntegerField(verbose_name="좋아요 수", default=0)
+    view_count = models.IntegerField(verbose_name="조회 수", default=0)
 
     class Meta:
         db_table = "content"
@@ -41,7 +45,7 @@ class ContentComment(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name="content_comments",
-        verbose_name="��용자",
+        verbose_name="사용자",
     )
     created_at = models.DateTimeField(verbose_name="생성일시", auto_now_add=True)
 
@@ -58,9 +62,31 @@ class ContentTag(models.Model):
         related_name="content_tags",
         verbose_name="콘텐츠",
     )
-    tag = models.CharField(max_length=50, verbose_name="태그")
+    name = models.CharField(max_length=50, verbose_name="태그")
 
     class Meta:
         db_table = "content_tag"
         verbose_name = "콘텐츠 태그"
+        verbose_name_plural = verbose_name
+
+
+class ContentLike(models.Model):
+    content = models.ForeignKey(
+        Content,
+        on_delete=models.CASCADE,
+        related_name="content_likes",
+        verbose_name="콘텐츠",
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="content_likes",
+        verbose_name="사용자",
+    )
+    is_like = models.BooleanField(verbose_name="좋아요 여부", default=True)
+    created_at = models.DateTimeField(verbose_name="생성일시", auto_now_add=True)
+
+    class Meta:
+        db_table = "content_like"
+        verbose_name = "콘텐츠 좋아요"
         verbose_name_plural = verbose_name

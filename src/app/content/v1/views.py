@@ -1,7 +1,8 @@
 from rest_framework import viewsets, mixins
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
-from app.content.models import Content, ContentComment
+from app.content.models import Content, ContentComment, ContentLike
 from app.content.v1.serialziers import (
     ContentSerializer,
     ContentCommentSerializer,
@@ -24,7 +25,9 @@ class ContentViewSet(
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        return queryset.filter(user=self.request.user)
+        if self.action in ["create", "update", "partial_update"]:
+            return queryset.filter(user=self.request.user)
+        return queryset
 
     def get_object(self):
         return super().get_object()
@@ -36,13 +39,34 @@ class ContentViewSet(
         return super().list(request, *args, **kwargs)
 
     def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
+        resp = super().retrieve(request, *args, **kwargs)
+        content = self.get_object()
+        content.view_count += 1
+        content.save()
+        return resp
 
     def update(self, request, *args, **kwargs):
         return super().update(request, *args, **kwargs)
 
     def partial_update(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)
+
+    @action(detail=True, methods=["PUT"])
+    def like(self, request, *args, **kwargs):
+        # url path : /v1/content/{pk}/like/
+        is_like = request.data.get("is_like")
+        content = self.get_object()
+        obj, _ = ContentLike.objects.update_or_create(
+            user=request.user, content=content
+        )
+        obj.is_like = is_like
+        if not is_like:
+            content.like_count -= 1
+        else:
+            content.like_count += 1
+        content.save()
+        obj.save()
+        return {"is_like": obj.is_like}
 
 
 class ContentCommentViewSet(
