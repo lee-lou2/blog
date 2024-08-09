@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from app.content.models import Content, ContentComment, ContentTag
+from app.content.models import Content, ContentComment, ContentTag, ContentLike
 from app.content.utils import format_time_ago
 from app.content.v1.nested_serializers import (
     ContentCommentNestedSerializer,
@@ -38,3 +38,24 @@ class ContentCommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContentComment
         fields = "__all__"
+
+
+class ContentLikeSerializer(serializers.ModelSerializer):
+    def save(self, **kwargs):
+        instance, is_create = ContentLike.objects.get_or_create(
+            content=kwargs["content"], user=kwargs["user"]
+        )
+        is_like = self.validated_data.get("is_like", True)
+        before_is_like = instance.is_like if not is_create else False
+        instance.is_like = is_like
+        instance.save()
+        if before_is_like != is_like and is_like:
+            instance.content.like_count += 1
+        elif before_is_like != is_like and not is_like:
+            instance.content.like_count -= 1
+        instance.content.save()
+        return instance
+
+    class Meta:
+        model = ContentLike
+        fields = ["is_like"]

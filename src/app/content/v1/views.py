@@ -1,11 +1,14 @@
-from rest_framework import viewsets, mixins
+import django_filters
+from rest_framework import viewsets, mixins, response, pagination
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
 from app.content.models import Content, ContentComment, ContentLike
+from app.content.v1.filters import ContentFilter
 from app.content.v1.serialziers import (
     ContentSerializer,
     ContentCommentSerializer,
+    ContentLikeSerializer,
 )
 
 
@@ -19,6 +22,8 @@ class ContentViewSet(
     queryset = Content.objects.all()
     serializer_class = ContentSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = pagination.LimitOffsetPagination
+    filterset_class = ContentFilter
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -51,22 +56,13 @@ class ContentViewSet(
     def partial_update(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)
 
-    @action(detail=True, methods=["PUT"])
+    @action(detail=True, methods=["PUT"], serializer_class=ContentLikeSerializer)
     def like(self, request, *args, **kwargs):
-        # url path : /v1/content/{pk}/like/
-        is_like = request.data.get("is_like")
         content = self.get_object()
-        obj, _ = ContentLike.objects.update_or_create(
-            user=request.user, content=content
-        )
-        obj.is_like = is_like
-        if not is_like:
-            content.like_count -= 1
-        else:
-            content.like_count += 1
-        content.save()
-        obj.save()
-        return {"is_like": obj.is_like}
+        serializer = self.get_serializer(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=self.request.user, content=content)
+        return response.Response(data=serializer.data)
 
 
 class ContentCommentViewSet(
