@@ -1,15 +1,43 @@
-import django_filters
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views import generic
 from rest_framework import viewsets, mixins, response, pagination
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
-from app.content.models import Content, ContentComment, ContentLike
+from app.content.models import Content, ContentComment
 from app.content.v1.filters import ContentFilter
+from app.content.v1.permissions import ContentUpdatePermission
 from app.content.v1.serialziers import (
     ContentSerializer,
     ContentCommentSerializer,
     ContentLikeSerializer,
 )
+
+
+class UserProfileRequiredMixin(LoginRequiredMixin):
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+        if not hasattr(request.user, "profile"):
+            return self.handle_no_permission()
+        return super().dispatch(request, *args, **kwargs)
+
+
+class ContentView(LoginRequiredMixin, generic.TemplateView):
+    template_name = "content/list.html"
+
+
+class ContentUpdateView(UserProfileRequiredMixin, generic.TemplateView):
+    pass
+
+
+class ContentDetailView(LoginRequiredMixin, generic.TemplateView):
+    template_name = "content/detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["post_id"] = self.kwargs.get("pk")
+        return context
 
 
 class ContentViewSet(
@@ -27,6 +55,11 @@ class ContentViewSet(
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def get_permissions(self):
+        if self.action in ["create", "update", "partial_update", "destroy"]:
+            return [ContentUpdatePermission()]
+        return super().get_permissions()
 
     def get_queryset(self):
         queryset = super().get_queryset()

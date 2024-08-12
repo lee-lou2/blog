@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Detail</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .blog-post {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .blog-post h1 {
+            margin: 0 0 20px;
+        }
+        .blog-post p {
+            margin: 0 0 10px;
+        }
+        .blog-post .tags {
+            margin-top: 20px;
+            font-style: italic;
+            color: #555;
+        }
+        .comments {
+            margin-top: 40px;
+        }
+        .comment {
+            padding: 15px;
+            border-top: 1px solid #ddd;
+        }
+        .comment h4 {
+            margin: 0 0 10px;
+        }
+        .comment p {
+            margin: 0 0 5px;
+        }
+        .reply {
+            margin-left: 20px;
+            border-left: 2px solid #ddd;
+            padding-left: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Blog Detail</h1>
+    <div id="blog-post" class="blog-post">
+        <!-- 여기서 블로그 포스트가 동적으로 렌더링 됩니다. -->
+    </div>
+
+    <div id="comments" class="comments">
+        <h2>Comments</h2>
+        <!-- 여기서 댓글이 동적으로 렌더링 됩니다. -->
+    </div>
+
+    <script>
+        async function fetchBlogPost() {
+            const postId = {{ post_id }};
+            try {
+                const response = await fetch(`/v1/content/${postId}/`);
+                const post = await response.json();
+                const blogPostDiv = document.getElementById('blog-post');
+
+                const title = document.createElement('h1');
+                title.textContent = post.title;
+
+                const body = document.createElement('p');
+                body.textContent = post.body;
+
+                const publishedAt = document.createElement('p');
+                publishedAt.textContent = `Published: ${post.published_at}`;
+
+                const tags = document.createElement('p');
+                tags.className = 'tags';
+                tags.textContent = `Tags: ${post.tags.join(', ')}`;
+
+                blogPostDiv.appendChild(title);
+                blogPostDiv.appendChild(body);
+                blogPostDiv.appendChild(publishedAt);
+                blogPostDiv.appendChild(tags);
+            } catch (error) {
+                console.error('Error fetching blog post:', error);
+            }
+        }
+
+        async function fetchComments() {
+            const postId = {{ post_id }};
+            try {
+                const response = await fetch(`/v1/content/${postId}/comment/`);
+                const data = await response.json();
+                const commentsDiv = document.getElementById('comments');
+
+                data.results.forEach(comment => {
+                    const commentDiv = document.createElement('div');
+                    commentDiv.className = 'comment';
+
+                    const author = document.createElement('h4');
+                    author.textContent = `User ${comment.user}`;  // user 필드가 ID로 되어 있으므로 간단히 처리
+
+                    const body = document.createElement('p');
+                    body.textContent = comment.body;
+
+                    const postedAt = document.createElement('p');
+                    postedAt.textContent = `Posted at: ${new Date(comment.created_at).toLocaleString()}`;
+
+                    commentDiv.appendChild(author);
+                    commentDiv.appendChild(body);
+                    commentDiv.appendChild(postedAt);
+
+                    // 댓글에 대한 답글을 처리합니다.
+                    if (comment.reply && comment.reply.length > 0) {
+                        comment.reply.forEach(reply => {
+                            const replyDiv = document.createElement('div');
+                            replyDiv.className = 'reply';
+
+                            const replyAuthor = document.createElement('h4');
+                            replyAuthor.textContent = `User ${reply.user}`;  // user 필드가 ID로 되어 있으므로 간단히 처리
+
+                            const replyBody = document.createElement('p');
+                            replyBody.textContent = reply.body;
+
+                            const replyPostedAt = document.createElement('p');
+                            replyPostedAt.textContent = `Posted at: ${new Date(reply.created_at).toLocaleString()}`;
+
+                            replyDiv.appendChild(replyAuthor);
+                            replyDiv.appendChild(replyBody);
+                            replyDiv.appendChild(replyPostedAt);
+
+                            commentDiv.appendChild(replyDiv);
+                        });
+                    }
+
+                    // 렌더링한 댓글 추가
+                    commentsDiv.appendChild(commentDiv);
+                });
+            } catch (error) {
+                console.error('Error fetching comments:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchBlogPost();
+            fetchComments();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .blog-post {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .blog-post h2 {
+            margin: 0 0 10px;
+        }
+        .blog-post p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Blog List</h1>
+    <div id="blog-list">
+        <!-- 여기서 블로그 포스트가 동적으로 렌더링 됩니다. -->
+    </div>
+
+    <script>
+        async function fetchBlogPosts() {
+            try {
+                const response = await fetch('/v1/content/');
+                const data = await response.json();
+                const blogList = document.getElementById('blog-list');
+
+                data.results.forEach(post => {
+                    const blogPostDiv = document.createElement('div');
+                    blogPostDiv.className = 'blog-post';
+                    blogPostDiv.addEventListener('click', () => {
+                        window.location.href = `/content/${post.id}`;
+                    });
+                    blogPostDiv.style.cursor = 'pointer';
+
+                    const title = document.createElement('h2');
+                    title.textContent = post.title;
+
+                    const body = document.createElement('p');
+                    body.textContent = post.body;
+
+                    const tags = document.createElement('p');
+                    tags.textContent = `Tags: ${post.tags.join(', ')}`;
+
+                    const publishedAt = document.createElement('p');
+                    publishedAt.textContent = `Published: ${post.published_at}`;
+
+                    blogPostDiv.appendChild(title);
+                    blogPostDiv.appendChild(body);
+                    blogPostDiv.appendChild(tags);
+                    blogPostDiv.appendChild(publishedAt);
+
+                    blogList.appendChild(blogPostDiv);
+                });
+            } catch (error) {
+                console.error('Error fetching blog posts:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchBlogPosts);
+    </script>
+</body>
+</html>

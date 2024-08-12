@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "app.content",
     "allauth",
     "allauth.account",
+    "app.user",
 ]
 
 MIDDLEWARE = [
