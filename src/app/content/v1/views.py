@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import generic
-from rest_framework import viewsets, mixins, response, pagination
+from rest_framework import viewsets, mixins, pagination
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
@@ -11,6 +11,7 @@ from app.content.v1.serialziers import (
     ContentSerializer,
     ContentCommentSerializer,
     ContentLikeSerializer,
+    ContentReportSerializer,
 )
 
 
@@ -63,6 +64,8 @@ class ContentViewSet(
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        if self.action in ["list", "retrieve"]:
+            queryset = queryset.exclude(content_reports__isnull=False)
         if self.action in ["create", "update", "partial_update"]:
             return queryset.filter(user=self.request.user)
         return queryset
@@ -91,11 +94,17 @@ class ContentViewSet(
 
     @action(detail=True, methods=["PUT"], serializer_class=ContentLikeSerializer)
     def like(self, request, *args, **kwargs):
-        content = self.get_object()
-        serializer = self.get_serializer(data=self.request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(user=self.request.user, content=content)
-        return response.Response(data=serializer.data)
+        instance = self.get_object()
+        request.data._mutable = True
+        request.data["content"] = instance.id
+        return self.create(request, *args, **kwargs)
+
+    @action(detail=True, methods=["POST"], serializer_class=ContentReportSerializer)
+    def report(self, request, *args, **kwargs):
+        instance = self.get_object()
+        request.data._mutable = True
+        request.data["content"] = instance.id
+        return self.create(request, *args, **kwargs)
 
 
 class ContentCommentViewSet(

@@ -14,6 +14,7 @@ class Content(models.Model):
     sub_title = models.CharField(
         max_length=255, verbose_name="부제목", blank=True, default=""
     )
+    is_active = models.BooleanField(verbose_name="활성 상태", default=True)
     image_url = models.URLField(verbose_name="이미지 URL", blank=True, default="")
     updated_at = models.DateTimeField(verbose_name="수정일시", auto_now=True)
     created_at = models.DateTimeField(verbose_name="생성일시", auto_now_add=True)
@@ -89,4 +90,26 @@ class ContentLike(models.Model):
     class Meta:
         db_table = "content_like"
         verbose_name = "콘텐츠 좋아요"
+        verbose_name_plural = verbose_name
+
+
+class ContentReport(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="content_reports",
+        verbose_name="사용자",
+    )
+    content = models.ForeignKey(
+        Content,
+        on_delete=models.CASCADE,
+        related_name="content_reports",
+        verbose_name="콘텐츠",
+    )
+    message = models.TextField(verbose_name="신고 내용")
+    created_at = models.DateTimeField(verbose_name="생성일시", auto_now_add=True)
+
+    class Meta:
+        db_table = "content_report"
+        verbose_name = "콘텐츠 신고"
         verbose_name_plural = verbose_name

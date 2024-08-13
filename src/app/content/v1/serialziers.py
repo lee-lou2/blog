@@ -1,6 +1,12 @@
 from rest_framework import serializers
 
-from app.content.models import Content, ContentComment, ContentTag, ContentLike
+from app.content.models import (
+    Content,
+    ContentComment,
+    ContentTag,
+    ContentLike,
+    ContentReport,
+)
 from app.content.utils import format_time_ago
 from app.content.v1.nested_serializers import (
     ContentCommentNestedSerializer,
@@ -41,12 +47,18 @@ class ContentCommentSerializer(serializers.ModelSerializer):
 
 
 class ContentLikeSerializer(serializers.ModelSerializer):
-    def save(self, **kwargs):
-        instance, is_create = ContentLike.objects.get_or_create(
-            content=kwargs["content"], user=kwargs["user"]
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    def to_internal_value(self, data):
+        data = super().to_internal_value(data)
+        self.instance, _ = ContentLike.objects.get_or_create(
+            content=data["content"], user=data["user"]
         )
-        is_like = self.validated_data.get("is_like", True)
-        before_is_like = instance.is_like if not is_create else False
+        return data
+
+    def update(self, instance, validated_data):
+        is_like = validated_data.get("is_like", True)
+        before_is_like = instance.is_like
         instance.is_like = is_like
         instance.save()
         if before_is_like != is_like and is_like:
@@ -59,3 +71,20 @@ class ContentLikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContentLike
         fields = ["is_like"]
+
+
+class ContentReportSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    def validate(self, attrs):
+        content = attrs.get("content")
+        user = attrs.get("user")
+        if ContentReport.objects.filter(content=content, user=user).exists():
+            raise serializers.ValidationError("이미 신고한 콘텐츠입니다.")
+        if content.user == user:
+            raise serializers.ValidationError("본인의 콘텐츠는 신고할 수 없습니다.")
+        return attrs
+
+    class Meta:
+        model = ContentReport
+        fields = "__all__"
