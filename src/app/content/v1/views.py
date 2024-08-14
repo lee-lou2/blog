@@ -48,7 +48,7 @@ class ContentViewSet(
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
 ):
-    queryset = Content.objects.all()
+    queryset = Content.objects.filter(is_active=True)
     serializer_class = ContentSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = pagination.LimitOffsetPagination
@@ -65,13 +65,10 @@ class ContentViewSet(
     def get_queryset(self):
         queryset = super().get_queryset()
         if self.action in ["list", "retrieve"]:
-            queryset = queryset.exclude(content_reports__isnull=False)
+            queryset = queryset.exclude(content_reports__user=self.request.user)
         if self.action in ["create", "update", "partial_update"]:
             return queryset.filter(user=self.request.user)
         return queryset
-
-    def get_object(self):
-        return super().get_object()
 
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
@@ -94,16 +91,10 @@ class ContentViewSet(
 
     @action(detail=True, methods=["PUT"], serializer_class=ContentLikeSerializer)
     def like(self, request, *args, **kwargs):
-        instance = self.get_object()
-        request.data._mutable = True
-        request.data["content"] = instance.id
         return self.create(request, *args, **kwargs)
 
     @action(detail=True, methods=["POST"], serializer_class=ContentReportSerializer)
     def report(self, request, *args, **kwargs):
-        instance = self.get_object()
-        request.data._mutable = True
-        request.data["content"] = instance.id
         return self.create(request, *args, **kwargs)
 
 

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from app.common.serializers import CurrentInstanceDefault
 from app.content.models import (
     Content,
     ContentComment,
@@ -48,6 +49,7 @@ class ContentCommentSerializer(serializers.ModelSerializer):
 
 class ContentLikeSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    content = serializers.HiddenField(default=CurrentInstanceDefault())
 
     def to_internal_value(self, data):
         data = super().to_internal_value(data)
@@ -75,6 +77,7 @@ class ContentLikeSerializer(serializers.ModelSerializer):
 
 class ContentReportSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    content = serializers.HiddenField(default=CurrentInstanceDefault())
 
     def validate(self, attrs):
         content = attrs.get("content")
