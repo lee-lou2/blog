@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import generic
-from rest_framework import viewsets, mixins, pagination
+from rest_framework import viewsets, mixins, pagination, response, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
@@ -77,11 +77,10 @@ class ContentViewSet(
         return super().list(request, *args, **kwargs)
 
     def retrieve(self, request, *args, **kwargs):
-        resp = super().retrieve(request, *args, **kwargs)
-        content = self.get_object()
-        content.view_count += 1
-        content.save()
-        return resp
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        serializer.increase_view()
+        return response.Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
         return super().update(request, *args, **kwargs)
@@ -91,11 +90,23 @@ class ContentViewSet(
 
     @action(detail=True, methods=["PUT"], serializer_class=ContentLikeSerializer)
     def like(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return response.Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
     @action(detail=True, methods=["POST"], serializer_class=ContentReportSerializer)
     def report(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return response.Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
 
 class ContentCommentViewSet(

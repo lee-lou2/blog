@@ -6,10 +6,16 @@ from app.content.models import ContentComment, ContentTag
 class ContentCommentNestedSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContentComment
-        fields = "__all__"
+        fields = (
+            "id",
+            "parent",
+            "body",
+            "user",
+            "created_at",
+        )
 
 
 class ContentTagNestedSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContentTag
-        fields = "__all__"
+        fields = ("id", "name")

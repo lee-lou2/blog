@@ -32,9 +32,22 @@ class ContentSerializer(serializers.ModelSerializer):
         ContentTag.objects.bulk_create(tag_objs)
         return instance
 
+    def increase_view(self):
+        self.instance.view_count += 1
+        self.instance.save()
+
     class Meta:
         model = Content
-        fields = "__all__"
+        fields = (
+            "id",
+            "title",
+            "body",
+            "sub_title",
+            "image_url",
+            "created_at",
+            "tags",
+            "published_at",
+        )
 
 
 class ContentCommentSerializer(serializers.ModelSerializer):
@@ -44,7 +57,15 @@ class ContentCommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ContentComment
-        fields = "__all__"
+        fields = (
+            "id",
+            "content",
+            "parent",
+            "body",
+            "user",
+            "reply",
+            "created_at",
+        )
 
 
 class ContentLikeSerializer(serializers.ModelSerializer):
@@ -72,7 +93,7 @@ class ContentLikeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ContentLike
-        fields = ["is_like"]
+        fields = ("is_like",)
 
 
 class ContentReportSerializer(serializers.ModelSerializer):
@@ -90,4 +111,4 @@ class ContentReportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ContentReport
-        fields = "__all__"
+        fields = ("id", "user", "content", "message", "created_at")
