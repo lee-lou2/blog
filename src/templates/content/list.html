@@ -21,10 +21,30 @@
         .blog-post p {
             margin: 0;
         }
+        /* 버튼 스타일 */
+        #edit-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        #edit-button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
     <h1>Blog List</h1>
+
+    <!-- /content/edit/로 이동하는 버튼 추가 -->
+    <a id="edit-button" href="/content/edit/">Edit Content</a>
+
     <div id="blog-list">
         <!-- 여기서 블로그 포스트가 동적으로 렌더링 됩니다. -->
     </div>

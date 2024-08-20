@@ -43,6 +43,30 @@
             border-left: 2px solid #ddd;
             padding-left: 15px;
         }
+        /* 댓글 입력 폼 스타일 */
+        #comment-form {
+            margin-bottom: 20px;
+        }
+        #comment-form input {
+            width: calc(100% - 110px);
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        #comment-form button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        #comment-form button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
@@ -53,6 +77,13 @@
 
     <div id="comments" class="comments">
         <h2>Comments</h2>
+
+        <!-- 댓글 입력 폼 -->
+        <div id="comment-form">
+            <input type="text" id="comment-input" placeholder="Write a comment..." required>
+            <button id="submit-comment">Post Comment</button>
+        </div>
+
         <!-- 여기서 댓글이 동적으로 렌더링 됩니다. -->
     </div>
 
@@ -141,9 +172,49 @@
             }
         }
 
+        async function postComment() {
+            const postId = {{ post_id }};
+            console.log('Posting comment for post ID:', postId);
+            const commentInput = document.getElementById('comment-input');
+            const commentText = commentInput.value;
+
+            if (commentText.trim() === '') {
+                alert('Comment cannot be empty');
+                return;
+            }
+
+            const commentData = {
+                content: commentText
+            };
+
+            try {
+                const response = await fetch(`/v1/content/${postId}/comment/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify(commentData)
+                });
+
+                if (response.ok) {
+                    alert('Comment posted successfully!');
+                    commentInput.value = '';  // 입력 필드 초기화
+                    fetchComments();  // 댓글 목록 새로 고침
+                } else {
+                    alert('Failed to post comment');
+                }
+            } catch (error) {
+                console.error('Error posting comment:', error);
+                alert('An error occurred while posting the comment');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             fetchBlogPost();
             fetchComments();
+
+            document.getElementById('submit-comment').addEventListener('click', postComment);
         });
     </script>
 </body>

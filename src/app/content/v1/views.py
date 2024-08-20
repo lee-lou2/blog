@@ -28,8 +28,13 @@ class ContentView(LoginRequiredMixin, generic.TemplateView):
     template_name = "content/list.html"
 
 
+class ContentEditView(LoginRequiredMixin, generic.TemplateView):
+    template_name = "content/edit.html"
+
+
 class ContentUpdateView(UserProfileRequiredMixin, generic.TemplateView):
-    pass
+    def get_context_data(self, **kwargs):
+        pass
 
 
 class ContentDetailView(LoginRequiredMixin, generic.TemplateView):
@@ -63,7 +68,7 @@ class ContentViewSet(
         return super().get_permissions()
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().order_by("-id")
         if self.action in ["list", "retrieve"]:
             queryset = queryset.exclude(content_reports__user=self.request.user)
         if self.action in ["create", "update", "partial_update"]:

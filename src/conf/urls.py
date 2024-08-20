@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.http import HttpResponse
 from django.urls import path, include
 
-from app.content.v1.views import ContentView, ContentDetailView
+from app.content.v1.views import ContentView, ContentDetailView, ContentEditView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -11,7 +11,8 @@ urlpatterns = [
 
 urlpatterns += [
     path("accounts/", include("allauth.urls")),
-    path("content/", ContentView.as_view(), name="content"),
+    path("", ContentView.as_view(), name="content"),
+    path("content/edit/", ContentEditView.as_view(), name="content_edit"),
     path("content/<int:pk>/", ContentDetailView.as_view(), name="content_detail"),
 ]
 
